@@ -102,6 +102,8 @@ abstract class @(class) {
     @(supportedLocales)
   ];
 
+  Map<String, String> get messages;
+
 @(methods)}
 
 @(delegateClass)
@@ -166,6 +168,9 @@ const String classFileTemplate = '''
 /// The translations for @(language) (`@(localeName)`).
 class @(class) extends @(baseClass) {
   @(class)([String locale = '@(localeName)']) : super(locale);
+
+  @override
+  Map<String, String> get messages => @(messages);
 
 @(methods)
 }

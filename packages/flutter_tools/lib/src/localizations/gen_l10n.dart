@@ -974,6 +974,14 @@ class LocalizationsGenerator {
       );
     });
 
+    String messages = _allMessages.map(
+      (Message message) {
+        String? value = message.messages[locale]?.replaceAll("\"", "\\\"");
+        return '      "${message.resourceId}": "$value"';
+      }
+      ).join(',\n');
+    messages = '{\n$messages\n }';
+
     return classFileTemplate
       .replaceAll('@(header)', header.isEmpty ? '' : '$header\n\n')
       .replaceAll('@(language)', describeLocale(locale.toString()))
@@ -982,6 +990,7 @@ class LocalizationsGenerator {
       .replaceAll('@(class)', '$className${locale.camelCase()}')
       .replaceAll('@(localeName)', locale.toString())
       .replaceAll('@(methods)', methods.join('\n\n'))
+      .replaceAll('@(messages)', messages)
       .replaceAll('@(requiresIntlImport)', requiresIntlImport ? "import 'package:intl/intl.dart' as intl;\n\n" : '');
   }
 
