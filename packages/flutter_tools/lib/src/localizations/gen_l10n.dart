@@ -976,7 +976,7 @@ class LocalizationsGenerator {
 
     String messages = _allMessages.map(
       (Message message) {
-        String? value = message.messages[locale]?.replaceAll("\"", "\\\"");
+        final String value = generateString(message.messages[locale] ?? '');
         return '      "${message.resourceId}": "$value"';
       }
       ).join(',\n');
@@ -1161,9 +1161,17 @@ class LocalizationsGenerator {
       // If the placeholders list is empty, then return a getter method.
       if (message.placeholders.isEmpty) {
         // Use the parsed translation to handle escaping with the same behavior.
-        return getterTemplate
-          .replaceAll('@(name)', message.resourceId)
-          .replaceAll('@(message)', "'${generateString(node.children.map((Node child) => child.value!).join())}'");
+        return intlMessageTemplate
+        .replaceFirst('@(name)', message.resourceId)
+          .replaceAll('@(name)', "\'${message.resourceId}\'")
+          .replaceAll('@(message)', "'${generateString(node.children.map((Node child) => child.value!).join())}'")
+          .replaceAll('@(description)', message.description != null ? '\'${message.description}\'' : 'null')
+          .replaceAll('@(locale)', 'localeName')
+          .replaceAll('@(examples)', 'null')
+          .replaceAll('@(args)', 'null')
+          .replaceAll('@(meaning)', 'null')
+          .replaceAll('@(skip)', 'null')
+          .replaceAll(RegExp(r'.*null,\n'), '');
       }
 
       final List<String> tempVariables = <String>[];
@@ -1315,13 +1323,22 @@ The plural cases must be one of "=0", "=1", "=2", "zero", "one", "two", "few", "
       }
       final String messageString = generateVariables(node, isRoot: true);
       final String tempVarLines = tempVariables.isEmpty ? '' : '${tempVariables.join('\n')}\n';
+      final String examples = message.placeholders.entries.map((entry) => '\'${entry.key}\' : \'${entry.value.example}\'').join(', ');
       return methodTemplate
-                .replaceAll('@(name)', message.resourceId)
+                .replaceFirst('@(name)', message.resourceId)
+          .replaceAll('@(name)', "\'${message.resourceId}\'")
                 .replaceAll('@(parameters)', generateMethodParameters(message).join(', '))
                 .replaceAll('@(dateFormatting)', generateDateFormattingLogic(message))
                 .replaceAll('@(numberFormatting)', generateNumberFormattingLogic(message))
                 .replaceAll('@(tempVars)', tempVarLines)
                 .replaceAll('@(message)', messageString)
+                .replaceAll('@(description)', message.description != null ? '\'${message.description}\'' : 'null')
+          .replaceAll('@(locale)', 'localeName')
+          .replaceAll('@(examples)', 'const {$examples}')
+          .replaceAll('@(args)', '${message.placeholders.keys.join(', ')}')
+          .replaceAll('@(meaning)', 'null')
+          .replaceAll('@(skip)', 'null')
+          .replaceAll(RegExp(r'.*null,\n'), '')
                 .replaceAll('@(none)\n', '');
     } on L10nParserException catch (error) {
       logger.printError(error.toString());

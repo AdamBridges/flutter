@@ -102,7 +102,7 @@ abstract class @(class) {
     @(supportedLocales)
   ];
 
-  Map<String, String> get messages;
+  Map<String, dynamic> get messages;
 
 @(methods)}
 
@@ -132,16 +132,34 @@ const String dateFormatCustomTemplate = '''
     final String @(placeholder)String = @(placeholder)DateFormat.format(@(placeholder));
 ''';
 
-const String getterTemplate = '''
+const String intlMessageTemplate = '''
   @override
-  String get @(name) => @(message);''';
+  String get @(name) => intl.Intl.message(
+        @(message),
+      desc: @(description),
+      examples: @(examples),
+    locale: @(locale),
+    name: @(name),
+    args: @(args),
+    meaning: @(meaning),
+    skip: @(skip),
+    );''';
 
 const String methodTemplate = '''
   @override
   String @(name)(@(parameters)) {
 @(dateFormatting)
 @(numberFormatting)
-@(tempVars)    return @(message);
+@(tempVars)    return intl.Intl.message(
+        @(message),
+      desc: @(description),
+      examples: @(examples),
+    locale: @(locale),
+    name: @(name),
+    args: [@(args)],
+    meaning: @(meaning),
+    skip: @(skip),
+    );
   }''';
 
 const String pluralVariableTemplate = '''
@@ -164,13 +182,14 @@ const String dateVariableTemplate = '''
 
 const String classFileTemplate = '''
 @(header)@(requiresIntlImport)import '@(fileName)';
+import 'package:intl/intl.dart' as intl;
 
 /// The translations for @(language) (`@(localeName)`).
 class @(class) extends @(baseClass) {
   @(class)([String locale = '@(localeName)']) : super(locale);
 
   @override
-  Map<String, String> get messages => @(messages);
+  Map<String, dynamic> get messages => @(messages);
 
 @(methods)
 }
